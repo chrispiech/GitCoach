@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
@@ -14,74 +17,86 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
+import jdk.nashorn.internal.parser.JSONParser;
+
 public class FileHistory {
-	
+
 	private static final int BREAK_MINS = 10;
 
 	public static ArrayList<String> getFiles(String repoPath) {
 		try {
-			Git git = Git.init().setDirectory(new File(repoPath) ).call();
+			Git git = Git.init().setDirectory(new File(repoPath)).call();
 			Repository repo = git.getRepository();
 			ObjectId from = repo.resolve("refs/heads/master");
-			RevWalk walk = new RevWalk(repo);
-			RevCommit commit = walk.parseCommit(from);
-			RevTree tree = commit.getTree();
-			TreeWalk treeWalk = new TreeWalk(repo);
-			treeWalk.addTree(tree);
-			treeWalk.setRecursive(false);
-			ArrayList<String> paths = new ArrayList<String>();
-			while (treeWalk.next()) {
-				if (treeWalk.isSubtree()) {
-					System.out.println("dir: " + treeWalk.getPathString());
-					treeWalk.enterSubtree();
-				} else {
-					paths.add(treeWalk.getPathString());
+			RevWalk revWalk = new RevWalk(repo);
+			RevCommit headCommit = revWalk.parseCommit(from);
 
+			revWalk.markStart(headCommit);
+			HashSet<String> paths = new HashSet<String>();
+
+			// Collect every file that shows up in any commit
+			for (RevCommit commit : revWalk) {
+				RevTree masterTree = commit.getTree();
+				TreeWalk treeWalk = new TreeWalk(repo);
+				treeWalk.addTree(masterTree);
+				treeWalk.setRecursive(false);
+				while (treeWalk.next()) {
+
+					if (treeWalk.isSubtree()) {
+						System.out.println("dir: " + treeWalk.getPathString());
+						treeWalk.enterSubtree();
+					} else {
+						String pathStr = treeWalk.getPathString();
+						if(isValidFile(pathStr)) {
+							paths.add(pathStr);
+						}
+
+					}
 				}
+				treeWalk.close();
 			}
-			walk.close();
-			treeWalk.close();
-			return paths;
+
+			revWalk.close();
+			return new ArrayList<String>(paths);
 		} catch (Exception e) {
 			throw(new RuntimeException(e));
 		}
 	}
-	
-	public static ArrayList<Intermediate> getHistory(String repoPath, String filePath) {
+
+	private static boolean isValidFile(String name) {
+		String caps = name.toUpperCase();
+		if(caps.contains("autograder")) return false;
+		return true;
+	}
+
+	public static ArrayList<Intermediate> getHistory(String repoPath, String filePath, boolean shouldCompile) {
 		ArrayList<Intermediate> history = getRawIntermediate(repoPath, filePath); 
-		Collections.reverse(history);
+		addCommitIndex(history);
+		addFilePath(history, filePath);
 		addIntermediateTiming(history);
 		parseIntermediateCode(history);
+		if(shouldCompile) {
+			runIntermediateCode(history);
+		}
 		return history;
 	}
 
-	private static ArrayList<Intermediate> getRawIntermediate(String repoPath, String filePath) {
-		ArrayList<Intermediate> history = new ArrayList<Intermediate>();
-		try {
-			Git git = Git.init().setDirectory(new File(repoPath) ).call();
-			Repository repo = git.getRepository();
-
-			RevWalk walk = new RevWalk(repo);
-			ObjectId from = repo.resolve("refs/heads/master");
-			walk.markStart(walk.parseCommit(from));
-
-			String lastText = "";
-			for (RevCommit commit : walk) {
-				String currText = getFile(repo, commit, filePath);
-				if(!currText.isEmpty() && !currText.equals(lastText)) {
-					Intermediate intr = new Intermediate();
-					intr.code = currText;
-					intr.timeStamp = commit.getCommitTime();
-					history.add(intr);
-					lastText = currText;
-				}
-			}
-			walk.close();
-			
-		} catch (Exception e) {
-			throw(new RuntimeException(e));
+	private static void addCommitIndex(ArrayList<Intermediate> history) {
+		for(int i = 0; i < history.size(); i++) {
+			history.get(i).commitIndex = i;
 		}
-		return history;
+	}
+
+	private static void addFilePath(ArrayList<Intermediate> history, String filePath) {
+		for(Intermediate intermediate : history) {
+			intermediate.filePath = filePath;
+		}
+	}
+
+	private static void runIntermediateCode(ArrayList<Intermediate> history) {
+		for(Intermediate intermediate : history) {
+			Runner.run(intermediate);
+		}
 	}
 
 	private static void parseIntermediateCode(ArrayList<Intermediate> history) {
@@ -118,10 +133,84 @@ public class FileHistory {
 			} else {
 				intermediate.breakHours = null;
 			}
-			
+
 			lastTime = time;
 		}
 
+	}
+
+	private static ArrayList<Intermediate> getRawIntermediate(String repoPath, String filePath) {
+		ArrayList<Intermediate> history = new ArrayList<Intermediate>();
+		try {
+			Git git = Git.init().setDirectory(new File(repoPath) ).call();
+			Repository repo = git.getRepository();
+
+			RevWalk walk = new RevWalk(repo);
+			ObjectId from = repo.resolve("refs/heads/master");
+			walk.markStart(walk.parseCommit(from));
+
+			String lastText = "";
+			int lastRuns = 0;
+
+			List<RevCommit> commits = new ArrayList<RevCommit>();
+			for (RevCommit commit : walk) {
+				commits.add(commit);
+			}
+			Collections.reverse(commits);
+			for(RevCommit commit: commits) {
+				String currText = getFile(repo, commit, filePath);
+
+				boolean editedFile = !currText.isEmpty() && !currText.equals(lastText);
+
+				Integer runs = getRuns(commit.getShortMessage());
+
+				if(editedFile) {
+
+					Intermediate intr = new Intermediate();
+					intr.commitMsg = commit.getShortMessage();
+					intr.deltaRuns = calcDeltaRuns(lastRuns, runs);
+					intr.code = currText;
+					intr.timeStamp = commit.getCommitTime();
+					history.add(intr);
+					lastText = currText;
+				}
+
+				if(runs != null) {
+					lastRuns = runs;
+				}
+			}
+			walk.close();
+
+		} catch (Exception e) {
+			throw(new RuntimeException(e));
+		}
+		return history;
+	}
+
+	private static int calcDeltaRuns(int lastRuns, Integer runs) {
+		if(runs != null)  {
+			if(runs < lastRuns) {
+				return runs;
+			} else {
+				return (runs - lastRuns);
+			}
+		}
+		return 0;
+	}
+
+	// This is based on the assumption of the format of the
+	// commit message. I have built it to be fault taulerant...
+	private static Integer getRuns(String shortMessage) {
+		int locRun = shortMessage.indexOf("runs");
+		if(locRun == -1) return null;
+		try {
+			int locNum = locRun + 6; // length of 'runs":'
+			int endIndex = shortMessage.length() - 1;
+			String numStr = shortMessage.substring(locNum, endIndex);
+			return Integer.parseInt(numStr);
+		} catch(Exception e) {
+			return null;
+		}
 	}
 
 	private static String getFile(Repository repo, RevCommit commit, String path) throws IOException {

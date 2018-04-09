@@ -1,0 +1,9 @@
+GradeCheck1.w
+GradeCheck2.w
+GradeCheck3.w
+GradeCheck4.w
+GradeCheck5.w
+GradeCheck6.w
+GradeCheck7.w
+GradeCheck8.w
+GradeCheck9.w

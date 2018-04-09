@@ -1,6 +1,7 @@
 package stanford.edu.gitviewer;
 import java.util.List;
 
+import graphs.GraphChoser;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.application.Application;
@@ -14,18 +15,24 @@ import javafx.stage.Stage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.Group;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.geometry.Pos;
 
 public class GitViewer extends Application {
 
-	private static final String REPO_PATH = "/Users/piech/Desktop/gits/apleus_2";
+	private static final String TEST_REPO_PATH = "/Users/piech/Desktop/gits/jkilson_1";
+	private static final String CURR_DIR = ".";
+	
+	private static final String REPO_PATH = TEST_REPO_PATH;
 
 	private final ComboBox<String> comboBox = new ComboBox<String>();
 	private final CodeEditor editor = new CodeEditor("hello world");
 	private final ListView<String> listView = new ListView<String>();
 	private List<Intermediate> history = null;
-	private GitGrapher grapher = new GitGrapher();
+	private GraphChoser topGraph = new GraphChoser("SourceLength");
+	private GraphChoser bottomGraph = new GraphChoser("Runs");
+	private boolean shouldCompile = false;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -38,9 +45,11 @@ public class GitViewer extends Application {
 	}
 
 	private void displayFile(String filePath) {
-		history = FileHistory.getHistory(REPO_PATH, filePath);
+		editor.resetScroll();
+		history = FileHistory.getHistory(REPO_PATH, filePath, shouldCompile);
 		makeListView(history);
-		grapher.drawGraph(history);
+		topGraph.drawGraph(history);
+		bottomGraph.drawGraph(history);
 	}
 
 	private ListView<String> makeListView(List<Intermediate> history) {
@@ -49,10 +58,10 @@ public class GitViewer extends Application {
 		for (int i = 0; i < history.size(); i++) {
 			Intermediate intermediate = history.get(i);
 			double workingHours = intermediate.workingHours;
-			String label = i +"\t" + Util.round(workingHours, 2) + "h";
+			String label = i +"\t" + formatTime(workingHours);
 			if(intermediate.breakHours != null) {
 				double breakHours = intermediate.breakHours;
-				label += " (" + Util.round(breakHours, 2) + "h)";
+				label += " (" + formatTime(breakHours) + ")";
 			}
 			data.add(label);
 		}
@@ -63,15 +72,22 @@ public class GitViewer extends Application {
 		return listView;
 	}
 
+	private String formatTime(double workingHours) {
+		int hours = (int)workingHours;
+		int mins = (int) Math.round(60 * (workingHours - hours));
+		return hours + "h " + mins + "m";
+	}
+
 	private void onIntermediateSelection(int index) {
 		Intermediate codeVersion = history.get(index);
 		String code = codeVersion.code;
 		editor.setCode(code);
-		grapher.setSelectedTime(codeVersion.workingHours);
+		topGraph.setSelectedTime(codeVersion.workingHours);
+		bottomGraph.setSelectedTime(codeVersion.workingHours);
 	}
 
 	private void makeDisplay(Stage primaryStage) {
-		primaryStage.setTitle("CS106A Coach");        
+		primaryStage.setTitle("CS106A Pensive");        
 		listView.getSelectionModel().selectedItemProperty().addListener(
 				new ChangeListener<String>() {
 					public void changed(ObservableValue<? extends String> ov, 
@@ -86,20 +102,42 @@ public class GitViewer extends Application {
 		WebView editorView = editor.getView(); 
 		graphCodeSplit.getItems().add(listView);
 		graphCodeSplit.getItems().add(editorView);
-		graphCodeSplit.getItems().add(grapher.getView());
+
+		VBox graphs = new VBox();
+		graphs.getChildren().add(topGraph.getView());
+		graphs.getChildren().add(new Separator());
+		graphs.getChildren().add(bottomGraph.getView());
+
+		graphCodeSplit.getItems().add(graphs);
 		graphCodeSplit.setDividerPositions(0.12, 0.65);
 		BorderPane border = new BorderPane();
 		border.setCenter(graphCodeSplit);
 
 		Label fileLabel = new Label("File: ");
+		List<String> allFiles = FileHistory.getFiles(REPO_PATH);
 		ObservableList<String> options = 
-				FXCollections.observableArrayList(FileHistory.getFiles(REPO_PATH));
+				FXCollections.observableArrayList(allFiles);
 		comboBox.setItems(options);
 		comboBox.setValue(comboBox.getItems().get(0));
+
+//		ToggleSwitch runSwitch = new ToggleSwitch("Run: ");
+//		runSwitch.setPadding(new Insets(4, 0, 0, 0));
+//		runSwitch.selectedProperty().addListener(new ChangeListener<Boolean>() {
+//			@Override
+//			public void changed(ObservableValue<? extends Boolean> observable,
+//					Boolean oldValue, Boolean newValue) {
+//				shouldCompile = newValue;
+//				if(shouldCompile) {
+//					String filePath = comboBox.getValue();
+//					displayFile(filePath);
+//				}
+//			}
+//		});
 
 		HBox hb = new HBox();
 		hb.setAlignment(Pos.CENTER);
 		hb.getChildren().addAll(fileLabel, comboBox);
+		//hb.getChildren().addAll(runSwitch);
 		hb.setSpacing(10);
 		border.setTop(hb);
 
@@ -113,6 +151,9 @@ public class GitViewer extends Application {
 
 		Scene scene = new Scene(new Group());
 		scene.setRoot(border);
+		
+		String style = getClass().getResource("css/program.css").toExternalForm();
+		scene.getStylesheets().add(style);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();

@@ -9,8 +9,11 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
+import javafx.scene.input.ScrollEvent;
 
 /**
  * A syntax highlighting code editor for JavaFX created by wrapping a
@@ -20,12 +23,16 @@ import javafx.scene.web.WebView;
 public class CodeEditor extends StackPane {
 	//private static final String CPP_CODE = "x-c++src";
 	private static final String JAVA_CODE = "x-java";
-	
+
 	/** a webview used to encapsulate the CodeMirror JavaScript. */
 	private final WebView webview = new WebView();
-	
+
 	private Map<String, String> jsCache = new HashMap<String, String>();
-	
+
+	// Keeps track of the last scroll position so that you don't go
+	// back to the top
+	int scrollY;
+
 	/**
 	 * Create a new code editor.
 	 * @param editingCode the initial code to be edited in the code editor.
@@ -36,10 +43,21 @@ public class CodeEditor extends StackPane {
 		String cssPath = cssUrl.toExternalForm();
 		webview.getEngine().setUserStyleSheetLocation(cssPath);
 		this.getChildren().add(webview);
-	}
-	
+		webview.setOnScroll(new EventHandler<ScrollEvent>() {
+			@Override 
+			public void handle(ScrollEvent event) {
+				scrollY = (Integer) webview.getEngine().executeScript("document.body.scrollTop;");
 
-	
+				//webview.getEngine().executeScript("window.scrollTo(0,document.body.scrollHeight);");
+
+			}
+		});
+	}
+
+	public void resetScroll() {
+		scrollY = 0;
+	}
+
 
 	/** applies the editing template to the editing code to create the html+javascript source for a code editor. 
 	 * @param code */
@@ -47,12 +65,12 @@ public class CodeEditor extends StackPane {
 		String html = editingTemplate.replace("${code}", code);
 		html = html.replace("${codemirrorjs}", loadCodeFromFile("codemirror.js"));
 		html = html.replace("${clikejs}", loadCodeFromFile("clike.js"));
-		
+		html = html.replace("${scrollY}", ""+scrollY);
 		return html;
 	}
-	
-	
-	
+
+
+
 	private String loadCodeFromFile(String fileName) {
 		if(jsCache.containsKey(fileName)) return jsCache.get(fileName);
 		String resourceName = "js/" + fileName;
@@ -72,16 +90,21 @@ public class CodeEditor extends StackPane {
 	public String getCode() {
 		return (String ) webview.getEngine().executeScript("editor.getValue();");
 	}
-	
+
 	public void setCode(String code) {
 		webview.getEngine().loadContent(applyEditingTemplate(code));
+
 	}
 
-	
+
+
+
 	public WebView getView() {
 		return webview;
 	}
-	
+
+
+
 	/**
 	 * a template for editing code - this can be changed to any template derived from the
 	 * supported modes at http://codemirror.net to allow syntax highlighted editing of
@@ -108,9 +131,12 @@ public class CodeEditor extends StackPane {
 					"    readOnly: true," +
 					"    mode: \"text/" + JAVA_CODE +  "\"" +
 					"  });" +
+					"  window.onload = function(){window.scrollTo(0,${scrollY});};" +
 					"</script>" +
 					"</body>" +
 					"</html>";
+
+
 
 
 }
