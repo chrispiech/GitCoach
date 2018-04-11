@@ -23,6 +23,8 @@ public class FileHistory {
 
 	private static final int BREAK_MINS = 10;
 
+	// Returns null if the git repo was currupt in any way :-)
+	// Else returns the list of files in the repo..
 	public static ArrayList<String> getFiles(String repoPath) {
 		try {
 			Git git = Git.init().setDirectory(new File(repoPath)).call();
@@ -59,7 +61,7 @@ public class FileHistory {
 			revWalk.close();
 			return new ArrayList<String>(paths);
 		} catch (Exception e) {
-			throw(new RuntimeException(e));
+			return null;
 		}
 	}
 
