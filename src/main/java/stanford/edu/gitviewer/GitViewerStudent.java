@@ -1,7 +1,6 @@
 package stanford.edu.gitviewer;
 import java.util.List;
 
-import graphs.GraphChoser;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.application.Application;
@@ -15,16 +14,15 @@ import javafx.stage.Stage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.Group;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.*;
 import javafx.scene.web.WebView;
 import javafx.geometry.Pos;
 
 public class GitViewerStudent extends Application {
 
-	private static final String TEST_REPO_PATH = "/Users/piech/Documents/Teaching/cs106a/GitCoach/exampleGits/aaldana_1";
-	private static final String ERROR_REPO_PATH = "/Users/piech/Documents";
+	private static final String TEST_REPO_PATH = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana_1";
+	private static final String ERROR_REPO_PATH = "/Users/anniehu/Documents";
 	private static final String CURR_DIR = ".";
 
 	private static final String REPO_PATH = ERROR_REPO_PATH;
@@ -56,16 +54,19 @@ public class GitViewerStudent extends Application {
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
 		
-		String errorMessage = "";
-		errorMessage += "Oops we couldn't find\n";
-		errorMessage += "code history in this folder.\n";
-		errorMessage += "no worries.\n";
-		errorMessage += "Talk to an SL!";
+		String errorMessage = "Oops, we couldn't find\n"
+							+ "code history in this folder.\n\n"
+							+ "no worries.\n\n"
+							+ "Talk to an SL!";
 		
-		Text text = new Text(10, 40, errorMessage);
-		text.setFont(new Font(40));
+		StackPane root = new StackPane();
+		Text text = new Text(errorMessage);
+		text.setFont(Font.font("Helvetica", 40));
+		text.setTextAlignment(TextAlignment.CENTER);
+		root.getChildren().addAll(text);
+		StackPane.setAlignment(text,  Pos.CENTER);
 		
-		Scene scene = new Scene(new Group(text));
+		Scene scene = new Scene(root);
 
 		String style = getClass().getResource("css/program.css").toExternalForm();
 		scene.getStylesheets().add(style);
