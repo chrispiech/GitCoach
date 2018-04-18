@@ -98,7 +98,7 @@ public class GitViewer extends Application {
 		Image img = new Image(IMG_DIR + imgName);
 		ImageView imgView = new ImageView();
 		imgView.setImage(img);
-		imgView.setFitHeight(200);
+		imgView.setFitHeight(300);
 		imgView.setPreserveRatio(true);
 		imgView.setSmooth(true);
 		imgView.setCache(true);
@@ -124,15 +124,17 @@ public class GitViewer extends Application {
 		graphCodeSplit.getItems().add(listView);
 		
 		WebView editorView = editor.getView(); 
-		StackPane progressView = makeImageView("backward_0024.png");
-		VBox center = new VBox();
-		center.getChildren().add(progressView);
-		center.getChildren().add(new Separator());
-		center.getChildren().add(editorView);
-		graphCodeSplit.getItems().add(center);
+//		StackPane progressView = makeImageView("backward_0024.png");
+//		VBox center = new VBox();
+//		center.getChildren().add(progressView);
+//		center.getChildren().add(new Separator());
+//		center.getChildren().add(editorView);
+		graphCodeSplit.getItems().add(editorView);
 
 		VBox graphs = new VBox();
-		graphs.getChildren().add(topGraph.getView());
+		StackPane progressView = makeImageView("backward_0024.png");
+		//graphs.getChildren().add(topGraph.getView());
+		graphs.getChildren().add(progressView);
 		graphs.getChildren().add(new Separator());
 		graphs.getChildren().add(bottomGraph.getView());
 
