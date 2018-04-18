@@ -11,17 +11,25 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.Group;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebView;
 import javafx.geometry.Pos;
 
 public class GitViewer extends Application {
 
-	private static final String TEST_REPO_PATH = "/Users/piech/Documents/Teaching/cs106a/GitCoach/exampleGits/aaldana_1";
+	private static final String TEST_REPO_PATH = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana_1";
+	private static final String IMG_DIR = "file:/Users/anniehu/Desktop/GitCoach/"; // needs to be changed
 	private static final String CURR_DIR = ".";
 	
 	private static final String REPO_PATH = TEST_REPO_PATH;
@@ -86,8 +94,22 @@ public class GitViewer extends Application {
 		bottomGraph.setSelectedTime(codeVersion.workingHours);
 	}
 
+	private StackPane makeImageView(String imgName) {
+		Image img = new Image(IMG_DIR + imgName);
+		ImageView imgView = new ImageView();
+		imgView.setImage(img);
+		imgView.setFitHeight(200);
+		imgView.setPreserveRatio(true);
+		imgView.setSmooth(true);
+		imgView.setCache(true);
+		StackPane progressView = new StackPane();
+		progressView.getChildren().addAll(imgView);
+		StackPane.setAlignment(imgView,  Pos.CENTER);
+		return progressView;
+	}
+	
 	private void makeDisplay(Stage primaryStage) {
-		primaryStage.setTitle("CS106A Pensive");        
+		primaryStage.setTitle("CS106A Pensieve");        
 		listView.getSelectionModel().selectedItemProperty().addListener(
 				new ChangeListener<String>() {
 					public void changed(ObservableValue<? extends String> ov, 
@@ -99,9 +121,15 @@ public class GitViewer extends Application {
 				});
 
 		SplitPane graphCodeSplit = new SplitPane();
-		WebView editorView = editor.getView(); 
 		graphCodeSplit.getItems().add(listView);
-		graphCodeSplit.getItems().add(editorView);
+		
+		WebView editorView = editor.getView(); 
+		StackPane progressView = makeImageView("backward_0024.png");
+		VBox center = new VBox();
+		center.getChildren().add(progressView);
+		center.getChildren().add(new Separator());
+		center.getChildren().add(editorView);
+		graphCodeSplit.getItems().add(center);
 
 		VBox graphs = new VBox();
 		graphs.getChildren().add(topGraph.getView());

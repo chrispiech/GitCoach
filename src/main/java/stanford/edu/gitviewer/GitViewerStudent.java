@@ -39,7 +39,7 @@ public class GitViewerStudent extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		primaryStage.setTitle("CS106A Pensive");
+		primaryStage.setTitle("CS106A Pensieve");
 		List<String> allFiles = FileHistory.getFiles(REPO_PATH);
 		if(allFiles != null) {
 			makeDisplay(primaryStage, allFiles);
