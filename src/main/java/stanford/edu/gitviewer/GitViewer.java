@@ -1,7 +1,13 @@
 package stanford.edu.gitviewer;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import graphs.GraphChoser;
+
+import org.apache.commons.io.IOUtils;
+import org.json.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.application.Application;
@@ -29,17 +35,20 @@ import javafx.geometry.Pos;
 public class GitViewer extends Application {
 
 	private static final String TEST_REPO_PATH = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana_1";
-	private static final String IMG_DIR = "file:/Users/anniehu/Desktop/GitCoach/"; // needs to be changed
+	//private static final String IMG_DIR = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana/";
 	private static final String CURR_DIR = ".";
 	
 	private static final String REPO_PATH = TEST_REPO_PATH;
 
+	private JSONObject lookup = null;
+	private String filename = "";
 	private final ComboBox<String> comboBox = new ComboBox<String>();
 	private final CodeEditor editor = new CodeEditor("hello world");
 	private final ListView<String> listView = new ListView<String>();
 	private List<Intermediate> history = null;
-	private GraphChoser topGraph = new GraphChoser("SourceLength");
-	private GraphChoser bottomGraph = new GraphChoser("Runs");
+	//private GraphChoser topGraph = new GraphChoser("SourceLength");
+	private StackPane progressView = new StackPane();
+	private GraphChoser bottomGraph = new GraphChoser("SourceLength");
 	private boolean shouldCompile = false;
 
 	public static void main(String[] args) {
@@ -50,13 +59,25 @@ public class GitViewer extends Application {
 	public void start(Stage primaryStage) {
 		makeDisplay(primaryStage);
 		displayFile(comboBox.getValue());
+		File f = new File(REPO_PATH + "/lookup.json");
+        if (f.exists()){
+        	try {
+	            InputStream is = new FileInputStream(REPO_PATH + "/lookup.json");
+	            String jsonTxt = IOUtils.toString(is, "UTF-8");
+	            lookup = new JSONObject(jsonTxt);
+        	} catch (Exception e) {
+        		System.out.println(e);
+        	}
+        }
 	}
 
 	private void displayFile(String filePath) {
+		filename = filePath;
 		editor.resetScroll();
+		// refactor to store by timestamp
 		history = FileHistory.getHistory(REPO_PATH, filePath, shouldCompile);
 		makeListView(history);
-		topGraph.drawGraph(history);
+		//topGraph.drawGraph(history);
 		bottomGraph.drawGraph(history);
 	}
 
@@ -90,22 +111,28 @@ public class GitViewer extends Application {
 		Intermediate codeVersion = history.get(index);
 		String code = codeVersion.code;
 		editor.setCode(code);
-		topGraph.setSelectedTime(codeVersion.workingHours);
+		// topGraph.setSelectedTime(codeVersion.workingHours);
+		// change image
+		String timeStamp = Integer.toString(codeVersion.timeStamp);
+		if(filename.equals("Pyramid.java")) {
+			JSONObject interJSON = lookup.getJSONObject(filename).getJSONObject(timeStamp);
+			String imgName = interJSON.getString("img_dest");
+			makeImageView(imgName);
+		}
 		bottomGraph.setSelectedTime(codeVersion.workingHours);
 	}
 
-	private StackPane makeImageView(String imgName) {
-		Image img = new Image(IMG_DIR + imgName);
+	private void makeImageView(String imgName) {
+		Image img = new Image("file:" + REPO_PATH + "/" + imgName);
 		ImageView imgView = new ImageView();
 		imgView.setImage(img);
 		imgView.setFitHeight(300);
 		imgView.setPreserveRatio(true);
 		imgView.setSmooth(true);
 		imgView.setCache(true);
-		StackPane progressView = new StackPane();
+		progressView.getChildren().clear();
 		progressView.getChildren().addAll(imgView);
 		StackPane.setAlignment(imgView,  Pos.CENTER);
-		return progressView;
 	}
 	
 	private void makeDisplay(Stage primaryStage) {
@@ -132,7 +159,7 @@ public class GitViewer extends Application {
 		graphCodeSplit.getItems().add(editorView);
 
 		VBox graphs = new VBox();
-		StackPane progressView = makeImageView("backward_0024.png");
+		//StackPane progressView = makeImageView("backward_0024.png");
 		//graphs.getChildren().add(topGraph.getView());
 		graphs.getChildren().add(progressView);
 		graphs.getChildren().add(new Separator());
