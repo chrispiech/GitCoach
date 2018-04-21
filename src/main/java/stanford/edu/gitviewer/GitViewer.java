@@ -2,6 +2,7 @@ package stanford.edu.gitviewer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.List;
 
 import graphs.GraphChoser;
@@ -10,6 +11,8 @@ import org.apache.commons.io.IOUtils;
 import org.json.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,11 +23,15 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.Group;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -35,18 +42,23 @@ import javafx.geometry.Pos;
 public class GitViewer extends Application {
 
 	private static final String TEST_REPO_PATH = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana_1";
-	//private static final String IMG_DIR = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana/";
 	private static final String CURR_DIR = ".";
 	
 	private static final String REPO_PATH = TEST_REPO_PATH;
+	
+	private static final Color[] MILESTONE_COLORS = {Color.ANTIQUEWHITE,
+			Color.BLUEVIOLET, Color.DARKBLUE, Color.CORNFLOWERBLUE,
+			Color.SKYBLUE, Color.DARKCYAN, Color.CYAN,
+			Color.TURQUOISE, Color.LIGHTGREEN, Color.YELLOWGREEN,
+			Color.ORANGE, Color.DARKORANGE, Color.ORANGERED,
+			Color.RED, Color.DARKRED, Color.WHITESMOKE, Color.DARKGRAY};
 
 	private JSONObject lookup = null;
 	private String filename = "";
 	private final ComboBox<String> comboBox = new ComboBox<String>();
 	private final CodeEditor editor = new CodeEditor("hello world");
-	private final ListView<String> listView = new ListView<String>();
+	private final ListView<HBox> listView = new ListView<HBox>();
 	private List<Intermediate> history = null;
-	//private GraphChoser topGraph = new GraphChoser("SourceLength");
 	private StackPane progressView = new StackPane();
 	private GraphChoser bottomGraph = new GraphChoser("SourceLength");
 	private boolean shouldCompile = false;
@@ -54,45 +66,108 @@ public class GitViewer extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+	
+	/* Decreases delay between mouse hover and tooltip popup. */
+	public static void hackTooltipStartTiming(Tooltip tooltip) {
+	    try {
+	        Field fieldBehavior = tooltip.getClass().getDeclaredField("BEHAVIOR");
+	        fieldBehavior.setAccessible(true);
+	        Object objBehavior = fieldBehavior.get(tooltip);
+
+	        Field fieldTimer = objBehavior.getClass().getDeclaredField("activationTimer");
+	        fieldTimer.setAccessible(true);
+	        Timeline objTimer = (Timeline) fieldTimer.get(objBehavior);
+
+	        objTimer.getKeyFrames().clear();
+	        objTimer.getKeyFrames().add(new KeyFrame(new Duration(250)));
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 
 	@Override
 	public void start(Stage primaryStage) {
 		makeDisplay(primaryStage);
+		try {
+            InputStream is = new FileInputStream(REPO_PATH + "/lookup.json");
+            String jsonTxt = IOUtils.toString(is, "UTF-8");
+            lookup = new JSONObject(jsonTxt);
+    	} catch (Exception e) {
+    		System.out.println(e);
+    	}
 		displayFile(comboBox.getValue());
-		File f = new File(REPO_PATH + "/lookup.json");
-        if (f.exists()){
-        	try {
-	            InputStream is = new FileInputStream(REPO_PATH + "/lookup.json");
-	            String jsonTxt = IOUtils.toString(is, "UTF-8");
-	            lookup = new JSONObject(jsonTxt);
-        	} catch (Exception e) {
-        		System.out.println(e);
-        	}
-        }
 	}
 
 	private void displayFile(String filePath) {
-		filename = filePath;
 		editor.resetScroll();
-		// refactor to store by timestamp
+		progressView.getChildren().clear();
 		history = FileHistory.getHistory(REPO_PATH, filePath, shouldCompile);
-		makeListView(history);
-		//topGraph.drawGraph(history);
+		JSONObject fileJSON = null;
+		try {
+			fileJSON = lookup.getJSONObject(filePath);
+		} catch (Exception e) {
+			System.out.println("No image directory for file " + filePath);
+		}
+		makeListView(history, fileJSON);
 		bottomGraph.drawGraph(history);
+		filename = filePath;
+	}
+	
+	private Rectangle createMilestoneMarker(String timeStamp, JSONObject fileJSON) {
+		int milestone = -1;
+		int error = 0;
+		String tip = "";
+		if (fileJSON != null) {
+			try {
+				JSONObject interJSON = fileJSON.getJSONObject(timeStamp);
+				milestone = interJSON.getInt("milestone");
+				error = interJSON.getInt("type");
+			} catch(Exception e) {
+				System.out.println("No matching data for timestamp " + timeStamp);
+			}
+		}
+		Rectangle rect = new Rectangle(25, 25);
+		if (error == 0) {
+			if (milestone == -1) {
+				rect.setFill(Color.WHITE);
+			} else {
+				rect.setFill(MILESTONE_COLORS[milestone]);
+				tip = "Milestone " + Integer.toString(milestone + 1);
+			}
+		} else if (error == 1) {
+			rect.setFill(Color.DEEPPINK);
+			tip = "Compile error";
+		} else {
+			rect.setFill(Color.CRIMSON);
+			tip = "Runtime error";
+		}
+		if (!tip.isEmpty()) {
+			Tooltip t = new Tooltip(tip);
+			Tooltip.install(rect, t);
+			hackTooltipStartTiming(t);
+		}
+		return rect;
 	}
 
-	private ListView<String> makeListView(List<Intermediate> history) {
-		ObservableList<String> data = FXCollections.observableArrayList();
+	private ListView<HBox> makeListView(List<Intermediate> history, JSONObject fileJSON) {
+		ObservableList<HBox> data = FXCollections.observableArrayList();
 		listView.setMinSize(200, 200);
 		for (int i = 0; i < history.size(); i++) {
 			Intermediate intermediate = history.get(i);
 			double workingHours = intermediate.workingHours;
-			String label = i +"\t" + formatTime(workingHours);
+			String text = i +"\t" + formatTime(workingHours);
 			if(intermediate.breakHours != null) {
 				double breakHours = intermediate.breakHours;
-				label += " (" + formatTime(breakHours) + ")";
+				text += " (" + formatTime(breakHours) + ")";
 			}
-			data.add(label);
+			String timeStamp = Integer.toString(intermediate.timeStamp);
+			HBox pane = new HBox();
+			Region filler = new Region();
+			HBox.setHgrow(filler, Priority.ALWAYS);
+			Label label = new Label(text);
+			Rectangle marker = createMilestoneMarker(timeStamp, fileJSON);
+			pane.getChildren().addAll(label, filler, marker);
+			data.add(pane);
 		}
 		listView.setItems(data);
 		Intermediate codeVersion = history.get(0);
@@ -111,13 +186,13 @@ public class GitViewer extends Application {
 		Intermediate codeVersion = history.get(index);
 		String code = codeVersion.code;
 		editor.setCode(code);
-		// topGraph.setSelectedTime(codeVersion.workingHours);
-		// change image
 		String timeStamp = Integer.toString(codeVersion.timeStamp);
-		if(filename.equals("Pyramid.java")) {
+		try {
 			JSONObject interJSON = lookup.getJSONObject(filename).getJSONObject(timeStamp);
 			String imgName = interJSON.getString("img_dest");
 			makeImageView(imgName);
+		} catch(Exception e) {
+			System.out.println("image file not found.");
 		}
 		bottomGraph.setSelectedTime(codeVersion.workingHours);
 	}
@@ -138,9 +213,9 @@ public class GitViewer extends Application {
 	private void makeDisplay(Stage primaryStage) {
 		primaryStage.setTitle("CS106A Pensieve");        
 		listView.getSelectionModel().selectedItemProperty().addListener(
-				new ChangeListener<String>() {
-					public void changed(ObservableValue<? extends String> ov, 
-							String oldValue, String newValue) {
+				new ChangeListener<HBox>() {
+					public void changed(ObservableValue<? extends HBox> ov, 
+							HBox oldValue, HBox newValue) {
 						int index = listView.getSelectionModel().getSelectedIndex();
 						if(index == -1) return;
 						onIntermediateSelection(index);
@@ -151,16 +226,9 @@ public class GitViewer extends Application {
 		graphCodeSplit.getItems().add(listView);
 		
 		WebView editorView = editor.getView(); 
-//		StackPane progressView = makeImageView("backward_0024.png");
-//		VBox center = new VBox();
-//		center.getChildren().add(progressView);
-//		center.getChildren().add(new Separator());
-//		center.getChildren().add(editorView);
 		graphCodeSplit.getItems().add(editorView);
 
 		VBox graphs = new VBox();
-		//StackPane progressView = makeImageView("backward_0024.png");
-		//graphs.getChildren().add(topGraph.getView());
 		graphs.getChildren().add(progressView);
 		graphs.getChildren().add(new Separator());
 		graphs.getChildren().add(bottomGraph.getView());
