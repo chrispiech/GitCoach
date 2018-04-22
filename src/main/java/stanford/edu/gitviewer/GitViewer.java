@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import graphs.GraphChoser;
+import graphs.ImageViewPane;
 
 import org.apache.commons.io.IOUtils;
 import org.json.*;
@@ -46,12 +47,17 @@ public class GitViewer extends Application {
 	
 	private static final String REPO_PATH = TEST_REPO_PATH;
 	
-	private static final Color[] MILESTONE_COLORS = {Color.ANTIQUEWHITE,
+	private static final Color[] MILESTONE_COLORS = {Color.WHITE, Color.ANTIQUEWHITE,
 			Color.BLUEVIOLET, Color.DARKBLUE, Color.CORNFLOWERBLUE,
 			Color.SKYBLUE, Color.DARKCYAN, Color.CYAN,
 			Color.TURQUOISE, Color.LIGHTGREEN, Color.YELLOWGREEN,
 			Color.ORANGE, Color.DARKORANGE, Color.ORANGERED,
 			Color.RED, Color.DARKRED, Color.WHITESMOKE, Color.DARKGRAY};
+	
+//  ANNIE to finish
+//	private static final String[] MILESTONE_BLURBS = {"Empty", ""
+//			
+//	};
 
 	private JSONObject lookup = null;
 	private String filename = "";
@@ -59,7 +65,7 @@ public class GitViewer extends Application {
 	private final CodeEditor editor = new CodeEditor("hello world");
 	private final ListView<HBox> listView = new ListView<HBox>();
 	private List<Intermediate> history = null;
-	private StackPane progressView = new StackPane();
+	private ImageViewPane progressView = new ImageViewPane();
 	private GraphChoser bottomGraph = new GraphChoser("SourceLength");
 	private boolean shouldCompile = false;
 
@@ -89,7 +95,7 @@ public class GitViewer extends Application {
 	public void start(Stage primaryStage) {
 		makeDisplay(primaryStage);
 		try {
-            InputStream is = new FileInputStream(REPO_PATH + "/lookup.json");
+            InputStream is = new FileInputStream(REPO_PATH + "/images/lookup.json");
             String jsonTxt = IOUtils.toString(is, "UTF-8");
             lookup = new JSONObject(jsonTxt);
     	} catch (Exception e) {
@@ -100,7 +106,7 @@ public class GitViewer extends Application {
 
 	private void displayFile(String filePath) {
 		editor.resetScroll();
-		progressView.getChildren().clear();
+		progressView.setImageView(null);
 		history = FileHistory.getHistory(REPO_PATH, filePath, shouldCompile);
 		JSONObject fileJSON = null;
 		try {
@@ -132,7 +138,7 @@ public class GitViewer extends Application {
 				rect.setFill(Color.WHITE);
 			} else {
 				rect.setFill(MILESTONE_COLORS[milestone]);
-				tip = "Milestone " + Integer.toString(milestone + 1);
+				tip = "Milestone " + Integer.toString(milestone);
 			}
 		} else if (error == 1) {
 			rect.setFill(Color.DEEPPINK);
@@ -201,16 +207,12 @@ public class GitViewer extends Application {
 		Image img = new Image("file:" + REPO_PATH + "/" + imgName);
 		ImageView imgView = new ImageView();
 		imgView.setImage(img);
-		imgView.setFitHeight(300);
-		imgView.setPreserveRatio(true);
 		imgView.setSmooth(true);
 		imgView.setCache(true);
-		progressView.getChildren().clear();
-		progressView.getChildren().addAll(imgView);
-		StackPane.setAlignment(imgView,  Pos.CENTER);
+		progressView.setImageView(imgView);
 	}
 	
-	private void makeDisplay(Stage primaryStage) {
+	private void makeDisplay(final Stage primaryStage) {
 		primaryStage.setTitle("CS106A Pensieve");        
 		listView.getSelectionModel().selectedItemProperty().addListener(
 				new ChangeListener<HBox>() {
@@ -229,6 +231,8 @@ public class GitViewer extends Application {
 		graphCodeSplit.getItems().add(editorView);
 
 		VBox graphs = new VBox();
+		progressView.setPrefHeight(300);
+		bottomGraph.getView().setPrefHeight(300);
 		graphs.getChildren().add(progressView);
 		graphs.getChildren().add(new Separator());
 		graphs.getChildren().add(bottomGraph.getView());
