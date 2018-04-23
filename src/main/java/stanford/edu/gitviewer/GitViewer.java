@@ -23,6 +23,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.layout.BorderPane;
@@ -39,6 +40,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebView;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 
 public class GitViewer extends Application {
 
@@ -48,16 +50,19 @@ public class GitViewer extends Application {
 	private static final String REPO_PATH = TEST_REPO_PATH;
 	
 	private static final Color[] MILESTONE_COLORS = {Color.WHITE, Color.ANTIQUEWHITE,
-			Color.BLUEVIOLET, Color.DARKBLUE, Color.CORNFLOWERBLUE,
-			Color.SKYBLUE, Color.DARKCYAN, Color.CYAN,
-			Color.TURQUOISE, Color.LIGHTGREEN, Color.YELLOWGREEN,
-			Color.ORANGE, Color.DARKORANGE, Color.ORANGERED,
-			Color.RED, Color.DARKRED, Color.WHITESMOKE, Color.DARKGRAY};
+			Color.DARKBLUE, Color.CORNFLOWERBLUE, Color.SKYBLUE,
+			Color.DARKCYAN, Color.CYAN, Color.TURQUOISE,
+			Color.LIGHTGREEN, Color.YELLOWGREEN, Color.ORANGE,
+			Color.DARKORANGE, Color.ORANGERED, Color.RED,
+			Color.DARKRED, Color.WHITESMOKE, Color.DARKGRAY};
 	
-//  ANNIE to finish
-//	private static final String[] MILESTONE_BLURBS = {"Empty", ""
-//			
-//	};
+	private static final String[] MILESTONE_BLURBS = {"Empty", "Hello world",
+			"Single row", "Diagonal", "Two row",
+			"Rectangle", "Parallelogram", "Right triangle",
+			"Column structure", "Scalene triangle", "Pyramid-like",
+			"Offset pyramid", "Offset Extra Credit", "Perfect",
+			"Perfect + EC", "Off-track", "Brick wall"
+	};
 
 	private JSONObject lookup = null;
 	private String filename = "";
@@ -119,7 +124,7 @@ public class GitViewer extends Application {
 		filename = filePath;
 	}
 	
-	private Rectangle createMilestoneMarker(String timeStamp, JSONObject fileJSON) {
+	private Rectangle createMilestoneMarker(String timeStamp, JSONObject fileJSON, double height) {
 		int milestone = -1;
 		int error = 0;
 		String tip = "";
@@ -132,13 +137,13 @@ public class GitViewer extends Application {
 				System.out.println("No matching data for timestamp " + timeStamp);
 			}
 		}
-		Rectangle rect = new Rectangle(25, 25);
+		Rectangle rect = new Rectangle(height, height);
 		if (error == 0) {
 			if (milestone == -1) {
 				rect.setFill(Color.WHITE);
 			} else {
 				rect.setFill(MILESTONE_COLORS[milestone]);
-				tip = "Milestone " + Integer.toString(milestone);
+				tip = "Milestone " + Integer.toString(milestone) + ": " + MILESTONE_BLURBS[milestone];
 			}
 		} else if (error == 1) {
 			rect.setFill(Color.DEEPPINK);
@@ -170,8 +175,8 @@ public class GitViewer extends Application {
 			HBox pane = new HBox();
 			Region filler = new Region();
 			HBox.setHgrow(filler, Priority.ALWAYS);
-			Label label = new Label(text);
-			Rectangle marker = createMilestoneMarker(timeStamp, fileJSON);
+			Text label = new Text(text);
+			Rectangle marker = createMilestoneMarker(timeStamp, fileJSON, label.getBoundsInLocal().getHeight());
 			pane.getChildren().addAll(label, filler, marker);
 			data.add(pane);
 		}
@@ -231,8 +236,6 @@ public class GitViewer extends Application {
 		graphCodeSplit.getItems().add(editorView);
 
 		VBox graphs = new VBox();
-		progressView.setPrefHeight(300);
-		bottomGraph.getView().setPrefHeight(300);
 		graphs.getChildren().add(progressView);
 		graphs.getChildren().add(new Separator());
 		graphs.getChildren().add(bottomGraph.getView());
@@ -286,5 +289,9 @@ public class GitViewer extends Application {
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
+		
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+		progressView.setPrefHeight(primScreenBounds.getHeight() / 2);
+		bottomGraph.getView().setPrefHeight(primScreenBounds.getHeight() / 2);
 	}
 }
