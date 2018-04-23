@@ -39,6 +39,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.web.WebView;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 
@@ -214,6 +215,7 @@ public class GitViewer extends Application {
 		imgView.setImage(img);
 		imgView.setSmooth(true);
 		imgView.setCache(true);
+		imgView.setPreserveRatio(true);
 		progressView.setImageView(imgView);
 	}
 	
@@ -235,12 +237,13 @@ public class GitViewer extends Application {
 		WebView editorView = editor.getView(); 
 		graphCodeSplit.getItems().add(editorView);
 
-		VBox graphs = new VBox();
-		graphs.getChildren().add(progressView);
-		graphs.getChildren().add(new Separator());
-		graphs.getChildren().add(bottomGraph.getView());
+		SplitPane graphImageSplit = new SplitPane();
+		graphImageSplit.setOrientation(Orientation.VERTICAL);
+		graphImageSplit.getItems().add(progressView);
+		graphImageSplit.getItems().add(bottomGraph.getView());
+		graphImageSplit.setDividerPositions(0.5);
 
-		graphCodeSplit.getItems().add(graphs);
+		graphCodeSplit.getItems().add(graphImageSplit);
 		graphCodeSplit.setDividerPositions(0.12, 0.65);
 		BorderPane border = new BorderPane();
 		border.setCenter(graphCodeSplit);
@@ -289,9 +292,5 @@ public class GitViewer extends Application {
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-		progressView.setPrefHeight(primScreenBounds.getHeight() / 2);
-		bottomGraph.getView().setPrefHeight(primScreenBounds.getHeight() / 2);
 	}
 }
