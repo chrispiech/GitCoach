@@ -23,6 +23,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -43,19 +44,23 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 
+/** File: GitViewer.java
+ * -------------------------------------
+ * Main controller for running Pensieve.
+ */
 public class GitViewer extends Application {
 
-	private static final String TEST_REPO_PATH = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana_1";
+	private static final String TEST_REPO_PATH = "exampleGits/aaldana_1";
 	private static final String CURR_DIR = ".";
 	
 	private static final String REPO_PATH = TEST_REPO_PATH;
 	
 	private static final Color[] MILESTONE_COLORS = {Color.WHITE, Color.ANTIQUEWHITE,
-			Color.DARKBLUE, Color.CORNFLOWERBLUE, Color.SKYBLUE,
-			Color.DARKCYAN, Color.CYAN, Color.TURQUOISE,
-			Color.LIGHTGREEN, Color.YELLOWGREEN, Color.ORANGE,
-			Color.DARKORANGE, Color.ORANGERED, Color.RED,
-			Color.DARKRED, Color.WHITESMOKE, Color.DARKGRAY};
+			Color.GOLD, Color.CORAL, Color.ORANGERED,
+			Color.MEDIUMPURPLE, Color.DARKBLUE, Color.CORNFLOWERBLUE,
+			Color.SKYBLUE, Color.DARKCYAN, Color.TURQUOISE,
+			Color.LIGHTGREEN, Color.GREENYELLOW, Color.GREEN,
+			Color.CYAN, Color.DIMGREY, Color.DARKGRAY};
 	
 	private static final String[] MILESTONE_BLURBS = {"Empty", "Hello world",
 			"Single row", "Diagonal", "Two row",
@@ -65,8 +70,11 @@ public class GitViewer extends Application {
 			"Perfect + EC", "Off-track", "Brick wall"
 	};
 
+	/* Controls timestamp -> image lookups */
 	private JSONObject lookup = null;
 	private String filename = "";
+	
+	/* Setup main views */
 	private final ComboBox<String> comboBox = new ComboBox<String>();
 	private final CodeEditor editor = new CodeEditor("hello world");
 	private final ListView<HBox> listView = new ListView<HBox>();
@@ -110,6 +118,7 @@ public class GitViewer extends Application {
 		displayFile(comboBox.getValue());
 	}
 
+	/* Displays initial view for selected file. */
 	private void displayFile(String filePath) {
 		editor.resetScroll();
 		progressView.setImageView(null);
@@ -125,6 +134,7 @@ public class GitViewer extends Application {
 		filename = filePath;
 	}
 	
+	/* Creates colored rectangle with corresponding tooltip for a given commit and milestone. */
 	private Rectangle createMilestoneMarker(String timeStamp, JSONObject fileJSON, double height) {
 		int milestone = -1;
 		int error = 0;
@@ -138,6 +148,7 @@ public class GitViewer extends Application {
 				System.out.println("No matching data for timestamp " + timeStamp);
 			}
 		}
+		
 		Rectangle rect = new Rectangle(height, height);
 		if (error == 0) {
 			if (milestone == -1) {
@@ -147,7 +158,7 @@ public class GitViewer extends Application {
 				tip = "Milestone " + Integer.toString(milestone) + ": " + MILESTONE_BLURBS[milestone];
 			}
 		} else if (error == 1) {
-			rect.setFill(Color.DEEPPINK);
+			rect.setFill(Color.VIOLET);
 			tip = "Compile error";
 		} else {
 			rect.setFill(Color.CRIMSON);
@@ -161,6 +172,7 @@ public class GitViewer extends Application {
 		return rect;
 	}
 
+	/* Creates list of all intermediate commits. */
 	private ListView<HBox> makeListView(List<Intermediate> history, JSONObject fileJSON) {
 		ObservableList<HBox> data = FXCollections.observableArrayList();
 		listView.setMinSize(200, 200);
@@ -174,7 +186,7 @@ public class GitViewer extends Application {
 			}
 			String timeStamp = Integer.toString(intermediate.timeStamp);
 			HBox pane = new HBox();
-			Region filler = new Region();
+			Region filler = new Region(); // makes sure milestone marker is right-aligned
 			HBox.setHgrow(filler, Priority.ALWAYS);
 			Text label = new Text(text);
 			Rectangle marker = createMilestoneMarker(timeStamp, fileJSON, label.getBoundsInLocal().getHeight());
@@ -182,7 +194,7 @@ public class GitViewer extends Application {
 			data.add(pane);
 		}
 		listView.setItems(data);
-		Intermediate codeVersion = history.get(0);
+		Intermediate codeVersion = history.get(0); // start at time 0
 		String code = codeVersion.code;
 		editor.setCode(code);
 		return listView;
@@ -194,6 +206,7 @@ public class GitViewer extends Application {
 		return hours + "h " + mins + "m";
 	}
 
+	/* Displays corresponding image and place in graph for a selected commit. */
 	private void onIntermediateSelection(int index) {
 		Intermediate codeVersion = history.get(index);
 		String code = codeVersion.code;
@@ -209,6 +222,7 @@ public class GitViewer extends Application {
 		bottomGraph.setSelectedTime(codeVersion.workingHours);
 	}
 
+	/* Displays given image in the top right view. */
 	private void makeImageView(String imgName) {
 		Image img = new Image("file:" + REPO_PATH + "/" + imgName);
 		ImageView imgView = new ImageView();
@@ -219,6 +233,7 @@ public class GitViewer extends Application {
 		progressView.setImageView(imgView);
 	}
 	
+	/* Creates the overall layout of Pensieve. */
 	private void makeDisplay(final Stage primaryStage) {
 		primaryStage.setTitle("CS106A Pensieve");        
 		listView.getSelectionModel().selectedItemProperty().addListener(

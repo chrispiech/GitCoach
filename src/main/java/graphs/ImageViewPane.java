@@ -15,8 +15,11 @@ import javafx.scene.layout.*;
 
 
 /**
- *
- * @author akouznet
+ * File: ImageViewPane.java
+ * ---------------------------
+ * Defines a container for an ImageView that ensures
+ * the given ImageView is resizable, maintains aspect ratio,
+ * and is centered in the container.
  */
 public class ImageViewPane extends Region {
 
@@ -43,6 +46,7 @@ public class ImageViewPane extends Region {
 		ImageView imageView = imageViewProperty.get();
 		if (imageView != null) {
 	        imageView.setFitWidth(getWidth());
+	        // heuristic to ensure aspect ratio is mostly maintained
 	        if(getHeight() <= getWidth()) {
 	        	imageView.setFitHeight(getHeight());
 	        }
