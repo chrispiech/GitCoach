@@ -201,7 +201,7 @@ public class FileHistory {
 	}
 
 	// This is based on the assumption of the format of the
-	// commit message. I have built it to be fault taulerant...
+	// commit message. I have built it to be fault tolerant...
 	private static Integer getRuns(String shortMessage) {
 		int locRun = shortMessage.indexOf("runs");
 		if(locRun == -1) return null;

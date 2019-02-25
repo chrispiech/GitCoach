@@ -44,7 +44,7 @@ public class Histogram {
 			double upperBound = lowerBound + binSize;
 			int count = counts.get(i);
 			String lowerStr = String.format("%.2f", lowerBound);
-			String upperStr = String.format("%.2f", upperBound);
+			//String upperStr = String.format("%.2f", upperBound);
 			//String boundStr = "[" + lowerStr + "," + upperStr + ")";
 			String boundStr = lowerStr;
 			System.out.println(boundStr + "\t" + count);

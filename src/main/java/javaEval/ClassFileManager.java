@@ -6,6 +6,7 @@ import java.util.*;
 import javax.tools.*;
 import javax.tools.JavaFileObject.Kind;
 
+@SuppressWarnings("unchecked")
 public class ClassFileManager extends
 ForwardingJavaFileManager {
 	/**

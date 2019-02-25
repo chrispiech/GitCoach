@@ -62,7 +62,7 @@ public class GitViewer extends Application {
 			Color.LIGHTGREEN, Color.GREENYELLOW, Color.GREEN,
 			Color.CYAN, Color.DIMGREY, Color.DARKGRAY};
 	
-	private static final String[] MILESTONE_BLURBS = {"Empty", "Hello world",
+	private static final String[] MILESTONE_BLURBS = {"No milestone prediction", "Hello world",
 			"Single row", "Diagonal", "Two row",
 			"Rectangle", "Parallelogram", "Right triangle",
 			"Column structure", "Scalene triangle", "Pyramid-like",
