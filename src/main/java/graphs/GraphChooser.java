@@ -34,6 +34,7 @@ public class GraphChooser{
 		graphChoserBox.getChildren().add(currGraph.getView());
 		graphChoserBox.setAlignment(Pos.CENTER);
 		
+		// toggle which workflow graph is displayed
 		comboBox.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				String graphType = comboBox.getValue();
