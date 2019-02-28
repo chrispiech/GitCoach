@@ -15,7 +15,6 @@ import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import minions.KarelParser;
-import minions.KarelTester;
 
 public class Parser {
 
@@ -46,21 +45,6 @@ public class Parser {
 		}
 	}
 
-	/**
-	 * Simple visitor implementation for visiting MethodDeclaration nodes.
-	 */
-	private static class MethodVisitor extends VoidVisitorAdapter<Void> {
-		@Override
-		public void visit(MethodDeclaration n, Void arg) {
-			/* here you can access the attributes of the method.
-             this method will be called for all methods in this 
-             CompilationUnit, including inner class methods */
-
-			//System.out.println(n.getBody());
-			super.visit(n, arg);
-		}
-	}
-
 	private static void addTotalComments(Intermediate intermediate, CompilationUnit cu) {
 		int totalComments = 0;
 		for(Comment cmt : cu.getComments()) {
@@ -69,11 +53,6 @@ public class Parser {
 		}
 		intermediate.totalComments = totalComments;
 		intermediate.nonComments = intermediate.code.length() - totalComments;
-	}
-
-	private static String getClassName(String filePath) {
-		File f = new File(filePath);
-		return f.getName().split("\\.")[0];
 	}
 
 

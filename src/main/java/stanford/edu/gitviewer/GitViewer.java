@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import graphs.GraphChoser;
+import graphs.GraphChooser;
 import graphs.ImageViewPane;
 
 import org.apache.commons.io.IOUtils;
@@ -52,11 +52,12 @@ public class GitViewer extends Application {
 
 	// manually set for testing
 	private static final String TEST_REPO_PATH = "exampleGits/aaldana_1";
-	// used with real student submissions
 	private static final String CURR_DIR = ".";
 	
+	// set this to CURR_DIR for student submissions
 	private static final String REPO_PATH = TEST_REPO_PATH;
 	
+	// for milestone predictions
 	private static final Color[] MILESTONE_COLORS = {
 		Color.WHITE,
 		Color.ANTIQUEWHITE,
@@ -107,8 +108,7 @@ public class GitViewer extends Application {
 	private final ListView<HBox> listView = new ListView<HBox>();
 	private List<Intermediate> history = null;
 	private ImageViewPane progressView = new ImageViewPane();
-	private GraphChoser bottomGraph = new GraphChoser("SourceLength");
-	private boolean shouldCompile = false;
+	private GraphChooser bottomGraph = new GraphChooser("SourceLength");
 
 	public static void main(String[] args) {
 		launch(args);
@@ -131,7 +131,8 @@ public class GitViewer extends Application {
 	        e.printStackTrace();
 	    }
 	}
-
+	
+	/* Setup display, initialize image lookup. */
 	@Override
 	public void start(Stage primaryStage) {
 		makeDisplay(primaryStage);
@@ -149,7 +150,7 @@ public class GitViewer extends Application {
 	private void displayFile(String filePath) {
 		editor.resetScroll();
 		progressView.setImageView(null);
-		history = FileHistory.getHistory(REPO_PATH, filePath, shouldCompile);
+		history = FileHistory.getHistory(REPO_PATH, filePath);
 		JSONObject fileJSON = null;
 		try {
 			fileJSON = lookup.getJSONObject(filePath);
@@ -199,7 +200,7 @@ public class GitViewer extends Application {
 		return rect;
 	}
 
-	/* Creates list of all intermediate commits. */
+	/* Creates list of all intermediate commits in assignment timeline pane. */
 	private ListView<HBox> makeListView(List<Intermediate> history, JSONObject fileJSON) {
 		ObservableList<HBox> data = FXCollections.observableArrayList();
 		listView.setMinSize(200, 200);
@@ -233,7 +234,7 @@ public class GitViewer extends Application {
 		return hours + "h " + mins + "m";
 	}
 
-	/* Displays corresponding image and place in graph for a selected commit. */
+	/* Changes code displayed and red line in workflow graph given a selected commit. */
 	private void onIntermediateSelection(int index) {
 		Intermediate codeVersion = history.get(index);
 		String code = codeVersion.code;
@@ -249,7 +250,7 @@ public class GitViewer extends Application {
 		bottomGraph.setSelectedTime(codeVersion.workingHours);
 	}
 
-	/* Displays given image in the top right view. */
+	/* Displays image preview of current snapshot in the top right view. */
 	private void makeImageView(String imgName) {
 		Image img = new Image("file:" + REPO_PATH + "/" + imgName);
 		ImageView imgView = new ImageView();
@@ -297,24 +298,9 @@ public class GitViewer extends Application {
 		comboBox.setItems(options);
 		comboBox.setValue(comboBox.getItems().get(0));
 
-//		ToggleSwitch runSwitch = new ToggleSwitch("Run: ");
-//		runSwitch.setPadding(new Insets(4, 0, 0, 0));
-//		runSwitch.selectedProperty().addListener(new ChangeListener<Boolean>() {
-//			@Override
-//			public void changed(ObservableValue<? extends Boolean> observable,
-//					Boolean oldValue, Boolean newValue) {
-//				shouldCompile = newValue;
-//				if(shouldCompile) {
-//					String filePath = comboBox.getValue();
-//					displayFile(filePath);
-//				}
-//			}
-//		});
-
 		HBox hb = new HBox();
 		hb.setAlignment(Pos.CENTER);
 		hb.getChildren().addAll(fileLabel, comboBox);
-		//hb.getChildren().addAll(runSwitch);
 		hb.setSpacing(10);
 		border.setTop(hb);
 

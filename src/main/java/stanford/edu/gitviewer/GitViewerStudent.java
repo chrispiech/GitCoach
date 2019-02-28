@@ -21,8 +21,10 @@ import javafx.geometry.Pos;
 
 public class GitViewerStudent extends Application {
 
-	private static final String TEST_REPO_PATH = "/Users/anniehu/Desktop/GitCoach/exampleGits/aaldana_1";
-	private static final String ERROR_REPO_PATH = "/Users/anniehu/Documents";
+	// change these for testing
+	private static final String TEST_REPO_PATH = "./exampleGits/aaldana_1";
+	private static final String ERROR_REPO_PATH = ".";
+	// for actual student use
 	private static final String CURR_DIR = ".";
 
 	private static final String REPO_PATH = ERROR_REPO_PATH;
@@ -31,12 +33,12 @@ public class GitViewerStudent extends Application {
 	private final CodeEditor editor = new CodeEditor("hello world");
 	private final ListView<String> listView = new ListView<String>();
 	private List<Intermediate> history = null;
-	private boolean shouldCompile = false;
 
 	public static void main(String[] args) {
 		launch(args);
 	}
 
+	/** Setup basic Pensieve display. */
 	@Override
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("CS106A Pensieve");
@@ -48,7 +50,8 @@ public class GitViewerStudent extends Application {
 			makeErrorDisplay(primaryStage);
 		}
 	}
-
+	
+	/** Error message if version history is missing. */
 	private void makeErrorDisplay(Stage primaryStage) {
 
 		primaryStage.setWidth(800);
@@ -77,7 +80,7 @@ public class GitViewerStudent extends Application {
 
 	private void displayFile(String filePath) {
 		editor.resetScroll();
-		history = FileHistory.getHistory(REPO_PATH, filePath, shouldCompile);
+		history = FileHistory.getHistory(REPO_PATH, filePath);
 		makeListView(history);
 	}
 

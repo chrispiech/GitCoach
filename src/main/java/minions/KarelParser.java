@@ -10,10 +10,6 @@ import java.util.concurrent.*;
 import javaEval.CharSequenceJavaFileObject;
 import javaEval.ClassFileManager;
 import javaEval.JavaSource;
-import stanford.karel.Karel;
-import stanford.karel.KarelConstants;
-import stanford.karel.KarelException;
-import stanford.karel.KarelState;
 
 import javax.swing.event.ListSelectionEvent;
 import javax.tools.JavaCompiler;

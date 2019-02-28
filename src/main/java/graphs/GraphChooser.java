@@ -15,7 +15,7 @@ import javafx.scene.layout.VBox;
 import stanford.edu.gitviewer.FileHistory;
 import stanford.edu.gitviewer.Intermediate;
 
-public class GraphChoser{
+public class GraphChooser{
 
 	VBox graphChoserBox = null;
 	GitGraph currGraph = null;
@@ -24,7 +24,7 @@ public class GraphChoser{
 	List<Intermediate> historyCache = null;
 	double selectedTimeCache = 0;
 
-	public GraphChoser(String graphType) {
+	public GraphChooser(String graphType) {
 		graphChoserBox = new VBox();
 		comboBox = new ComboBox<String>();
 		populateComboBox();

@@ -76,15 +76,12 @@ public class FileHistory {
 	}
 
 	/** Returns all recorded snapshots for a given file. */
-	public static ArrayList<Intermediate> getHistory(String repoPath, String filePath, boolean shouldCompile) {
+	public static ArrayList<Intermediate> getHistory(String repoPath, String filePath) {
 		ArrayList<Intermediate> history = getRawIntermediate(repoPath, filePath); 
 		addCommitIndex(history);
 		addFilePath(history, filePath);
 		addIntermediateTiming(history);
 		parseIntermediateCode(history);
-		if(shouldCompile) {
-			runIntermediateCode(history);
-		}
 		return history;
 	}
 
@@ -98,12 +95,6 @@ public class FileHistory {
 	private static void addFilePath(ArrayList<Intermediate> history, String filePath) {
 		for(Intermediate intermediate : history) {
 			intermediate.filePath = filePath;
-		}
-	}
-
-	private static void runIntermediateCode(ArrayList<Intermediate> history) {
-		for(Intermediate intermediate : history) {
-			Runner.run(intermediate);
 		}
 	}
 
