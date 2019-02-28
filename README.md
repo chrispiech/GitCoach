@@ -1,5 +1,5 @@
 # Pensieve
-### Chris Piech, Annie Hu, Lisa Yan (Stanford University)
+### An open source tool for providing feedback for students
 
 To run (main program is `stanford/edu/gitviewer/GitViewer.java`):
 * Set `TEST_REPO_PATH` to the desired folder containing version history to view.
@@ -17,3 +17,5 @@ Description of relevant files:
   * `Indentation.java, RunGraphs.java, SourceLengthGraph.java`: custom graphs that we designed and have used with Pensieve. additional / different ones can be added similarly!
   * `ImageViewPane.java`: handles sizing / resizing of right side panels
 * `minions/, util/`: useful utility classes
+
+_Chris Piech, Annie Hu, Lisa Yan (Stanford University)_
