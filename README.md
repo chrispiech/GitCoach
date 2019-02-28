@@ -8,8 +8,8 @@ To run (main program is `stanford/edu/gitviewer/GitViewer.java`):
 
 Description of relevant files:
 * `stanford/edu/gitviewer/`: handles overall Pensieve setup and layout
-  * `GitViewer.java`: main controller, full version of Pensieve used by Teaching Assistants
-  * `GitViewerStudent.java`: condensed version of Pensieve given to students
+  * `GitViewer.java`: main controller, full version of Pensieve ("Standard / Deluxe with snapshot images") used by Teaching Assistants
+  * `GitViewerStudent.java`: condensed version of Pensieve ("Lite") given to students
   * `FileHistory.java`: processes code history (for us, the .git file) into useful formats
   * `CodeEditor.java`: controls center panel of student code displayed per snapshot
   * `Intermediate.java, Parser.java, Util.java`: processes and stores useful metadata about each snapshot (e.g. timestamp, working hours)
