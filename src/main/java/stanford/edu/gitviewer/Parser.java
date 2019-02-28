@@ -45,6 +45,7 @@ public class Parser {
 		}
 	}
 
+	/* Collect total comment vs. code length. */
 	private static void addTotalComments(Intermediate intermediate, CompilationUnit cu) {
 		int totalComments = 0;
 		for(Comment cmt : cu.getComments()) {
