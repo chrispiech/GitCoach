@@ -51,11 +51,11 @@ import javafx.geometry.Rectangle2D;
 public class GitViewer extends Application {
 
 	// manually set for testing
-	private static final String TEST_REPO_PATH = "exampleGits/aaldana_1";
+	private static final String TEST_REPO_PATH = "exampleGits/pensieve_demo";
 	private static final String CURR_DIR = ".";
 	
 	// set this to CURR_DIR for student submissions
-	private static final String REPO_PATH = TEST_REPO_PATH;
+	private static final String REPO_PATH = CURR_DIR;
 	
 	// for milestone predictions
 	private static final Color[] MILESTONE_COLORS = {

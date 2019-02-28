@@ -92,7 +92,6 @@ public class CodeEditor extends StackPane {
 
 	}
 
-
 	public WebView getView() {
 		return webview;
 	}

@@ -22,7 +22,7 @@ import javafx.geometry.Pos;
 public class GitViewerStudent extends Application {
 
 	// change these for testing
-	private static final String TEST_REPO_PATH = "./exampleGits/aaldana_1";
+	private static final String TEST_REPO_PATH = "./exampleGits/pensieve_demo";
 	private static final String ERROR_REPO_PATH = ".";
 	// for actual student use
 	private static final String CURR_DIR = ".";
