@@ -1,4 +1,0 @@
-SampleQuad1.w
-SampleQuad2.w
-GradeQuad1.w
-GradeQuad2.w

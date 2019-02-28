@@ -50,24 +50,51 @@ import javafx.geometry.Rectangle2D;
  */
 public class GitViewer extends Application {
 
+	// manually set for testing
 	private static final String TEST_REPO_PATH = "exampleGits/aaldana_1";
+	// used with real student submissions
 	private static final String CURR_DIR = ".";
 	
 	private static final String REPO_PATH = TEST_REPO_PATH;
 	
-	private static final Color[] MILESTONE_COLORS = {Color.WHITE, Color.ANTIQUEWHITE,
-			Color.GOLD, Color.CORAL, Color.ORANGERED,
-			Color.MEDIUMPURPLE, Color.DARKBLUE, Color.CORNFLOWERBLUE,
-			Color.SKYBLUE, Color.DARKCYAN, Color.TURQUOISE,
-			Color.LIGHTGREEN, Color.GREENYELLOW, Color.GREEN,
-			Color.CYAN, Color.DIMGREY, Color.DARKGRAY};
+	private static final Color[] MILESTONE_COLORS = {
+		Color.WHITE,
+		Color.ANTIQUEWHITE,
+		Color.GOLD,
+		Color.CORAL,
+		Color.ORANGERED,
+		Color.MEDIUMPURPLE,
+		Color.DARKBLUE,
+		Color.CORNFLOWERBLUE,
+		Color.SKYBLUE,
+		Color.DARKCYAN,
+		Color.TURQUOISE,
+		Color.LIGHTGREEN,
+		Color.GREENYELLOW,
+		Color.GREEN,
+		Color.CYAN,
+		Color.DIMGREY,
+		Color.DARKGRAY
+	};
 	
-	private static final String[] MILESTONE_BLURBS = {"No milestone prediction", "Hello world",
-			"Single row", "Diagonal", "Two row",
-			"Rectangle", "Parallelogram", "Right triangle",
-			"Column structure", "Scalene triangle", "Pyramid-like",
-			"Offset pyramid", "Offset Extra Credit", "Perfect",
-			"Perfect + EC", "Off-track", "Brick wall"
+	private static final String[] MILESTONE_BLURBS = {
+		"No milestone prediction",
+		"Hello world",
+		"Single row",
+		"Diagonal",
+		"Two row",
+		"Rectangle",
+		"Parallelogram",
+		"Right triangle",
+		"Column structure",
+		"Scalene triangle",
+		"Pyramid-like",
+		"Offset pyramid",
+		"Offset Extra Credit",
+		"Perfect",
+		"Perfect + EC",
+		"Off-track",
+		"Brick wall"
 	};
 
 	/* Controls timestamp -> image lookups */

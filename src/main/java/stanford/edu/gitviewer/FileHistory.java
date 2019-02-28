@@ -21,10 +21,13 @@ import jdk.nashorn.internal.parser.JSONParser;
 
 public class FileHistory {
 
+	// If the student is idle for > BREAK_MINS, pauses timer tracking total amount of work time
 	private static final int BREAK_MINS = 10;
 
-	// Returns null if the git repo was currupt in any way :-)
-	// Else returns the list of files in the repo..
+	/** Returns null if the git repo was currupt in any way :-)
+	 * Else returns the list of files in the repo.
+	 * @param repoPath
+	 */
 	public static ArrayList<String> getFiles(String repoPath) {
 		try {
 			Git git = Git.init().setDirectory(new File(repoPath)).call();
@@ -65,12 +68,14 @@ public class FileHistory {
 		}
 	}
 
+	/** Disregard our autograder files */
 	private static boolean isValidFile(String name) {
 		String caps = name.toUpperCase();
 		if(caps.contains("autograder")) return false;
 		return true;
 	}
 
+	/** Returns all recorded snapshots for a given file. */
 	public static ArrayList<Intermediate> getHistory(String repoPath, String filePath, boolean shouldCompile) {
 		ArrayList<Intermediate> history = getRawIntermediate(repoPath, filePath); 
 		addCommitIndex(history);
@@ -83,6 +88,7 @@ public class FileHistory {
 		return history;
 	}
 
+	/** Helper functions */
 	private static void addCommitIndex(ArrayList<Intermediate> history) {
 		for(int i = 0; i < history.size(); i++) {
 			history.get(i).commitIndex = i;
@@ -107,6 +113,7 @@ public class FileHistory {
 		}
 	}
 
+	/** Track work time / break time information. */
 	private static void addIntermediateTiming(ArrayList<Intermediate> history) {
 		int startTime = 0;
 		int workingTimeSeconds = 0;
@@ -119,6 +126,7 @@ public class FileHistory {
 			int time = intermediate.timeStamp;
 			boolean tookBreak = false;
 			int deltaSeconds = time - lastTime;
+			// don't add to working time if student took break
 			if(deltaSeconds > BREAK_MINS * 60) {
 				deltaSeconds = 0;
 				tookBreak = true;
@@ -200,8 +208,10 @@ public class FileHistory {
 		return 0;
 	}
 
-	// This is based on the assumption of the format of the
-	// commit message. I have built it to be fault tolerant...
+	/** This is based on the assumption of the format of the 
+	 * commit message. I have built it to be fault tolerant...
+	 * @param shortMessage: commit message
+	 */
 	private static Integer getRuns(String shortMessage) {
 		int locRun = shortMessage.indexOf("runs");
 		if(locRun == -1) return null;

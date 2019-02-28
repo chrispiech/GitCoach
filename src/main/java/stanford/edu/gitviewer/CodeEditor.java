@@ -21,7 +21,7 @@ import javafx.scene.input.ScrollEvent;
  * See http://codemirror.net for more information on using the codemirror editor.
  */
 public class CodeEditor extends StackPane {
-	//private static final String CPP_CODE = "x-c++src";
+	// private static final String CPP_CODE = "x-c++src";
 	private static final String JAVA_CODE = "x-java";
 
 	/** a webview used to encapsulate the CodeMirror JavaScript. */
@@ -35,7 +35,7 @@ public class CodeEditor extends StackPane {
 
 	/**
 	 * Create a new code editor.
-	 * @param editingCode the initial code to be edited in the code editor.
+	 * @param starterCode the initial code to be edited in the code editor.
 	 */
 	CodeEditor(String starterCode) {
 		webview.setPrefWidth(600);
@@ -47,9 +47,6 @@ public class CodeEditor extends StackPane {
 			@Override 
 			public void handle(ScrollEvent event) {
 				scrollY = (Integer) webview.getEngine().executeScript("document.body.scrollTop;");
-
-				//webview.getEngine().executeScript("window.scrollTo(0,document.body.scrollHeight);");
-
 			}
 		});
 	}
@@ -69,8 +66,7 @@ public class CodeEditor extends StackPane {
 		return html;
 	}
 
-
-
+	/** returns code from a given file in viewable form. */
 	private String loadCodeFromFile(String fileName) {
 		if(jsCache.containsKey(fileName)) return jsCache.get(fileName);
 		String resourceName = "js/" + fileName;
@@ -97,12 +93,9 @@ public class CodeEditor extends StackPane {
 	}
 
 
-
-
 	public WebView getView() {
 		return webview;
 	}
-
 
 
 	/**
@@ -135,8 +128,5 @@ public class CodeEditor extends StackPane {
 					"</script>" +
 					"</body>" +
 					"</html>";
-
-
-
 
 }
